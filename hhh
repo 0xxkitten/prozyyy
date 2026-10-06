@@ -1,17 +1,9 @@
-$bin = "C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin"
+$req = New-Object NetMQ.Sockets.RequestSocket("tcp://127.0.0.1:49777")
 
-[System.Reflection.Assembly]::LoadFrom("$bin\System.Buffers.dll")
+$req.SendFrame('{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}')
 
-[System.Reflection.Assembly]::LoadFrom("$bin\System.Runtime.CompilerServices.Unsafe.dll")
+Write-Host "Response=$($req.ReceiveFrameString())"
 
-[System.Reflection.Assembly]::LoadFrom("$bin\System.Memory.dll")
+If 49777 hangs for 10+ seconds, Ctrl+C and try
 
-[System.Reflection.Assembly]::LoadFrom("$bin\AsyncIO.dll")
-
-[System.Reflection.Assembly]::LoadFrom("$bin\NetMQ.dll")
-
-Now check what constructors exist:
-
-$asm = [System.Reflection.Assembly]::LoadFrom("$bin\NetMQ.dll")
-
-$asm.GetType("NetMQ.Sockets.RequestSocket").GetConstructors() | ForEach-Object { $_.ToString() }
+$req = New-Object NetMQ.Sockets.RequestSocket("tcp://127.0.0.1:49778")
