@@ -1,9 +1,1 @@
-$req = New-Object NetMQ.Sockets.RequestSocket("tcp://127.0.0.1:49777")
-
-$req.SendFrame('{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}')
-
-Write-Host "Response=$($req.ReceiveFrameString())"
-
-If 49777 hangs for 10+ seconds, Ctrl+C and try
-
-$req = New-Object NetMQ.Sockets.RequestSocket("tcp://127.0.0.1:49778")
+[NetMQ.OutgoingSocketExtensions]::SendFrame($req, '{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}', $false)
