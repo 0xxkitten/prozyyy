@@ -4,3 +4,12 @@
 $resp = [NetMQ.IncomingSocketExtensions]::ReceiveFrameString($req)
 
 Write-Host "Response=$resp"
+
+
+Get-FileHash "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf"
+
+(Get-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Length
+
+In the 32-bit window, find the correct receive method name:
+
+$asm.GetTypes() | Where-Object { $_.Name -like "*Extension*" } | Select-Object FullName
