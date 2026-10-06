@@ -1,1 +1,6 @@
 [NetMQ.OutgoingSocketExtensions]::SendFrame($req, '{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}', $false)
+
+
+$resp = [NetMQ.IncomingSocketExtensions]::ReceiveFrameString($req)
+
+Write-Host "Response=$resp"
