@@ -1,9 +1,5 @@
-$req.Dispose()
+$map = [System.IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting('Global\{37669676-A539-4FAF-BB0E-FBCE2F90B099}')
 
-$req = New-Object NetMQ.Sockets.RequestSocket("tcp://127.0.0.1:49778")
+$view = $map.CreateViewAccessor()
 
-[NetMQ.OutgoingSocketExtensions]::SendFrame($req, '{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}', $false)
-
-Wait 5 seconds, then check in the admin window:
-
-(Get-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Length
+$port = $view.ReadInt32(0); $view.Dispose(); $map.Dispose(); Write-Host "DiscoveredMEDLPPort=$port"
