@@ -1,13 +1,7 @@
-$request = '{"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850\\","TotalPages":1}'
+fff
 
-$args2 = [object[]]@(850, $request, $null, [long]10000)
+accesschk64.exe -accepteula -nobanner -L -o "\BaseNamedObjects\{37669676-A539-4FAF-BB0E-FBCE2F90B099}"
 
-$ok = $method.Invoke($client, $args2); Write-Host "Command850Success=$ok"
+ll
 
-x
-
-if ($args2[2] -ne $null) { Write-Host ('Response=' + [Text.Encoding]::UTF8.GetString($args2[2]).TrimEnd([char]0)) }
-
-x
-
-(Get-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Length
+accesschk64.exe -accepteula -nobanner -v -w -o "BUILTIN\Users" "\BaseNamedObjects\{37669676-A539-4FAF-BB0E-FBCE2F90B099}"
