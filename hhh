@@ -1,27 +1,9 @@
-$dir = 'C:\Windows\Temp\UEMS-MEDLP-CMD850'
+$hash | Out-File 'C:\Users\Public\uems-cmd850-before.txt'
 
-if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
+Close the admin PowerShell. Then open a normal PowerShell (NOT as admin) and run:
 
-mkdir $dir | Out-Null
-
-[IO.File]::WriteAllText("$dir\print_job.pdf", 'PROTECTED_CANARY_DO_NOT_OVERWRITE')
-
-$png = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==")
-
-[IO.File]::WriteAllBytes("$dir\1.png", $png)
-
-icacls $dir /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F'
-
-Screenshot the icacls output. Then:
-
-$hash = (Get-FileHash "$dir\print_job.pdf").Hash
-
-Write-Host "BeforeSHA256=$hash"
-
-Write-Host "BeforeLength=$((Get-Item "$dir\print_job.pdf").Length)"
+whoami /groups | Select-String "deny|Medium"
 
 Screenshot. Then:
 
-$hash | Out-File 'C:\Users\Public\uems-cmd850-before.txt'
-
-Close this elevated window.
+"test" | Out-File "C:\Windows\Temp\UEMS-MEDLP-CMD850\test.txt"
