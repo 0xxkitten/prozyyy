@@ -1,15 +1,9 @@
+$req.Dispose()
+
+$req = New-Object NetMQ.Sockets.RequestSocket("tcp://127.0.0.1:49778")
+
 [NetMQ.OutgoingSocketExtensions]::SendFrame($req, '{"Command":850,"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850","TotalPages":1}', $false)
 
-
-$resp = [NetMQ.IncomingSocketExtensions]::ReceiveFrameString($req)
-
-Write-Host "Response=$resp"
-
-
-Get-FileHash "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf"
+Wait 5 seconds, then check in the admin window:
 
 (Get-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Length
-
-In the 32-bit window, find the correct receive method name:
-
-$asm.GetTypes() | Where-Object { $_.Name -like "*Extension*" } | Select-Object FullName
