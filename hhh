@@ -1,5 +1,17 @@
-$map = [System.IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting('Global\{37669676-A539-4FAF-BB0E-FBCE2F90B099}')
+$assembly = [Reflection.Assembly]::LoadFrom("$bin\DotNetUI.dll")
 
-$view = $map.CreateViewAccessor()
+$type = $assembly.GetType('AgentUtil.DuplexClient', $true)
 
-$port = $view.ReadInt32(0); $view.Dispose(); $map.Dispose(); Write-Host "DiscoveredMEDLPPort=$port"
+$client = [Activator]::CreateInstance($type)
+
+$initialized = $type.GetMethod('Initialize').Invoke($client, @($port)); Write-Host "VendorClientInitialize=$initialized"
+
+ex
+
+$method = $type.GetMethod('SendWithPoller', [Type[]]@([int], [string], [byte[]].MakeByRefType(), [long]))
+
+$request = '{"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850\\","TotalPages":1}'
+
+$args2 = [object[]]@(850, $request, $null, [long]10000)
+
+$ok = $method.Invoke($client, $args2); Write-Host "Command850Success=$ok"
