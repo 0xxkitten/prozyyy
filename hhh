@@ -1,7 +1,27 @@
-fff
+$dir = 'C:\Windows\Temp\UEMS-MEDLP-CMD850'
 
-accesschk64.exe -accepteula -nobanner -L -o "\BaseNamedObjects\{37669676-A539-4FAF-BB0E-FBCE2F90B099}"
+if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
 
-ll
+mkdir $dir | Out-Null
 
-accesschk64.exe -accepteula -nobanner -v -w -o "BUILTIN\Users" "\BaseNamedObjects\{37669676-A539-4FAF-BB0E-FBCE2F90B099}"
+[IO.File]::WriteAllText("$dir\print_job.pdf", 'PROTECTED_CANARY_DO_NOT_OVERWRITE')
+
+$png = [Convert]::FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQABNjN9GQAAAABJRU5ErkJggg==")
+
+[IO.File]::WriteAllBytes("$dir\1.png", $png)
+
+icacls $dir /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F'
+
+Screenshot the icacls output. Then:
+
+$hash = (Get-FileHash "$dir\print_job.pdf").Hash
+
+Write-Host "BeforeSHA256=$hash"
+
+Write-Host "BeforeLength=$((Get-Item "$dir\print_job.pdf").Length)"
+
+Screenshot. Then:
+
+$hash | Out-File 'C:\Users\Public\uems-cmd850-before.txt'
+
+Close this elevated window.
