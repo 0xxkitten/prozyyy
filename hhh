@@ -1,17 +1,13 @@
-$assembly = [Reflection.Assembly]::LoadFrom("$bin\DotNetUI.dll")
-
-$type = $assembly.GetType('AgentUtil.DuplexClient', $true)
-
-$client = [Activator]::CreateInstance($type)
-
-$initialized = $type.GetMethod('Initialize').Invoke($client, @($port)); Write-Host "VendorClientInitialize=$initialized"
-
-ex
-
-$method = $type.GetMethod('SendWithPoller', [Type[]]@([int], [string], [byte[]].MakeByRefType(), [long]))
-
 $request = '{"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850\\","TotalPages":1}'
 
 $args2 = [object[]]@(850, $request, $null, [long]10000)
 
 $ok = $method.Invoke($client, $args2); Write-Host "Command850Success=$ok"
+
+x
+
+if ($args2[2] -ne $null) { Write-Host ('Response=' + [Text.Encoding]::UTF8.GetString($args2[2]).TrimEnd([char]0)) }
+
+x
+
+(Get-Item "C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf").Length
