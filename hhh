@@ -1,1 +1,43 @@
-reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v UpgradeFailureCountTemp
+reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerProtocol
+
+reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerPort
+reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerSecurePort
+
+$p = Get-Process MEDLP -ErrorAction SilentlyContinue; if ($p) { netstat -ano | findstr $p.Id }
+
+
+//
+
+Get-ChildItem "C:\Program Files (x86)\ManageEngine\UEMS_Agent" -Recurse -Filter "*.jar" -ErrorAction SilentlyContinue | Select-Object FullName, Length | Format-Table -AutoSize
+Get-ChildItem "C:\Program Files (x86)\ManageEngine\UEMS_Agent" -Recurse -Filter "*.jar" -ErrorAction SilentlyContinue | ForEach-Object { $acl = icacls $_.FullName 2>&1; if ($acl -match 'Users.*W|Users.*M|Users.*F|Everyone') { Write-Host "WRITABLE: $($_.FullName)"; Write-Host $acl } }
+
+Get-ChildItem "C:\Windows\Temp" -Filter "*.jar" -ErrorAction SilentlyContinue | Select-Object FullName
+Get-ChildItem "$env:TEMP" -Filter "*.jar" -ErrorAction SilentlyContinue | Select-Object FullName
+
+
+//
+
+icacls "C:\Program Files (x86)\ManageEngine\UEMS_Agent\Updates"
+
+Select-String -Path "C:\Program Files (x86)\ManageEngine\UEMS_Agent\logs\dcagentupgrade.log" -Pattern "DownloadAndExecute|local file path|copied to" | Select-Object -First 10 | ForEach-Object { Write-Host $_.Line }
+
+//
+
+Test-Path "C:\Windows\Temp\AgentUpgrader.exe"
+
+If it exists, check its imports:
+$bytes = [IO.File]::ReadAllBytes("C:\Windows\Temp\AgentUpgrader.exe"); $str = [Text.Encoding]::ASCII.GetString($bytes); Write-Host "bcrypt_import=$($str -match 'bcrypt\.dll')"; Write-Host "AddDllDirectory=$($str -match 'AddDllDirectory')"; Write-Host "SetDefaultDllDirectories=$($str -match 'SetDefaultDllDirectories')"
+
+$path = "C:\Program Files (x86)\ManageEngine\UEMS_Agent\Updates\AgentUpgrader.exe"; if (Test-Path $path) { $bytes = [IO.File]::ReadAllBytes($path); $str = [Text.Encoding]::ASCII.GetString($bytes); Write-Host "bcrypt_import=$($str -match 'bcrypt\.dll')"; Write-Host "AddDllDirectory=$($str -match 'AddDllDirectory')" }
+
+
+//
+
+
+$path = "C:\Program Files (x86)\ManageEngine\UEMS_Agent\bin\dcagentupgrader.exe"; $bytes = [IO.File]::ReadAllBytes($path); $str = [Text.Encoding]::ASCII.GetString($bytes); [regex]::Matches($str, 'openssl-[\d\.]+') | Select-Object -ExpandProperty Value -Unique
+
+Check 7zip version (in EndpointDLP):
+(Get-Item "C:\Program Files (x86)\ManageEngine\UEMS_Agent\EndpointDLP\bin\7z.dll").VersionInfo | Format-List FileVersion, ProductVersion
+
+Check all DLL versions in the bin directory:
+Get-ChildItem "C:\Program Files (x86)\ManageEngine\UEMS_Agent\bin" -Filter "*.dll" | ForEach-Object { $v = $_.VersionInfo; if ($v.ProductVersion) { Write-Host "$($_.Name) v$($v.ProductVersion)" } } | Sort-Object
