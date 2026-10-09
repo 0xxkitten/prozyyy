@@ -1,3 +1,6 @@
 schtasks /query /tn "\ManageEngine_PatchScan_Task" /v /fo LIST 2>$null
 If task exists:
 Start-ScheduledTask -TaskName "ManageEngine_PatchScan_Task" -ErrorAction SilentlyContinue
+
+
+Start-ScheduledTask -TaskPath '\' -TaskName 'DCAgentUpdater'
