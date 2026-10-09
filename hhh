@@ -1,2 +1,1 @@
-schtasks /query /tn "\DCAgentUpdater" /fo LIST /v | Select-String "Task To Run|Run As User|Status"
-  Get-AuthenticodeSignature "C:\Program Files (x86)\ManageEngine\UEMS_Agent\bin\dcagentupgrader.exe" | Format-List Status
+Get-Content "C:\Program Files (x86)\ManageEngine\UEMS_Agent\logs\DCAgentUpgraderAccess.log"
