@@ -1,1 +1,1 @@
-Get-Content "C:\Program Files (x86)\ManageEngine\UEMS_Agent\logs\DCAgentUpgraderAccess.log"
+Select-String -Path "C:\Program Files (x86)\ManageEngine\UEMS_Agent\logs\dcagentupgrade.log" -Pattern "TEMP\\AgentUpgrader|Process successfully created.*TEMP|Set Working Directory.*TEMP|FileName to search.*TEMP|Downloading.*TEMP|hash.*TEMP"
