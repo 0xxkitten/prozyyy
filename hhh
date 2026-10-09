@@ -1,2 +1,25 @@
 reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerIPAddress
 reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerPort
+
+
+Step 2 — Block the server temporarily (admin PowerShell):
+New-NetFirewallRule -DisplayName "UEMS-TEST-BLOCK" -Direction Outbound -RemoteAddress 10.146.16.169 -RemotePort 8383 -Protocol TCP -Action Block
+Screenshot this — proves the block is in place.
+
+Step 3 — Trigger the task 12 times:
+for ($i = 1; $i -le 12; $i++) { Write-Host "Attempt $i..."; Start-ScheduledTask -TaskPath '\' -TaskName 'DCAgentUpdater'; Start-Sleep -Seconds 30; Write-Host "Done $i" }
+
+This will take about 6 minutes (12 x 30 seconds). Wait for it to finish.
+
+Step 4 — Check the counter:
+reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v UpgradeFailureCountTemp
+
+Should show 0xc (12 decimal).
+
+Step 5 — Check the log for 12 failures:
+Get-Content "C:\Program Files (x86)\ManageEngine\UEMS_Agent\logs\DCAgentUpgraderAccess.log"
+
+Should show 12 FAILURE RefreshUpgrader entries.
+
+Step 6 — Remove the block:
+Remove-NetFirewallRule -DisplayName "UEMS-TEST-BLOCK"
