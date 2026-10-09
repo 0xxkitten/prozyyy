@@ -1,1 +1,2 @@
-Select-String -Path "C:\Program Files (x86)\ManageEngine\UEMS_Agent\logs\dcagentupgrade.log" -Pattern "TEMP\\AgentUpgrader|Process successfully created.*TEMP|Set Working Directory.*TEMP|FileName to search.*TEMP|Downloading.*TEMP|hash.*TEMP"
+reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerIPAddress
+reg query "HKLM\SOFTWARE\WOW6432Node\AdventNet\DesktopCentral\DCAgent\DCAgentUpgrader" /v DCServerPort
